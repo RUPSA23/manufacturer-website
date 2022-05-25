@@ -17,6 +17,7 @@ async function run(){
         await client.connect();
         const tollsCollection = client.db('manufactureFactory').collection('tools');   
         const reviewCollection = client.db('manufactureFactory').collection('reviews');
+        const userCollection = client.db('manufactureFactory').collection('user');
 
         app.get('/tools', async (req, res) => {
             const query = {};
@@ -38,12 +39,41 @@ async function run(){
         res.send(result);    
     });
 
+    app.post('/addUser', async (req, res) => { 
+      const user = req.body;
+      const query = {email_address: user.email_address};
+      const options = {upsert: true};
+      const updatedDoc = {
+          $set: {
+            LinkedIn_profile_link: user.LinkedIn_profile_link,
+            country: user.country,
+            street_address: user.street_address,
+            city: user.city,
+            state: user.state,
+            phone: user.phone
+          }
+      };
+      const result = await userCollection.updateOne(query, updatedDoc, options);
+      const res1 = await userCollection.findOne(query);
+      res.send(res1); 
+  });
+
     app.get('/allReviews', async (req, res) => {
       const query = {};
       const cursor = reviewCollection.find(query);
       const allReviews = await cursor.toArray();
       res.send(allReviews);
   })
+
+  app.get('/userDetails/:email', async (req, res) => {
+    const email = req.params.email;
+    console.log(email);
+    const query = {email_address: email};
+    const cursor = await userCollection.findOne(query);
+    console.log(cursor);
+    res.send(cursor);
+})
+
     }
     finally{
 
