@@ -10,18 +10,18 @@ app.use(cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.uuesw.mongodb.net/?retryWrites=true&w=majority`;
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.uuesw.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 async function run(){
     try{
         await client.connect();
-        const tollsCollection = client.db('manufactureFactory').collection('tools');   
+        const toolsCollection = client.db('manufactureFactory').collection('tools');   
         const reviewCollection = client.db('manufactureFactory').collection('reviews');
         const userCollection = client.db('manufactureFactory').collection('user');
+        const orderCollection = client.db('manufactureFactory').collection('order');
 
         app.get('/tools', async (req, res) => {
             const query = {};
-            const cursor = tollsCollection.find(query);
+            const cursor = toolsCollection.find(query);
             const alltools = await cursor.toArray();
             res.send(alltools);
         })
@@ -29,7 +29,7 @@ async function run(){
         app.get('/tool/:id', async (req, res) => {
           const id = req.params.id;
           const query = {_id: ObjectId(id)};
-          const tool = await tollsCollection.findOne(query);
+          const tool = await toolsCollection.findOne(query);
           res.send(tool);
       })
 
@@ -38,6 +38,12 @@ async function run(){
         const result =  await reviewCollection.insertOne(review);
         res.send(result);    
     });
+
+    app.post('/addOrderItem', async (req, res) => { 
+      const orderItem = req.body;
+      const result =  await orderCollection.insertOne(orderItem);
+      res.send(result);    
+  });
 
     app.post('/addUser', async (req, res) => { 
       const user = req.body;
@@ -65,12 +71,20 @@ async function run(){
       res.send(allReviews);
   })
 
+
+  app.get('/myorders/:email', async (req, res) => {
+    const email = req.params.email;
+    const query = {userEmail: email};
+    const cursor = orderCollection.find(query);
+    const allOrders= await cursor.toArray();
+    res.send(allOrders);
+})
+
+
   app.get('/userDetails/:email', async (req, res) => {
     const email = req.params.email;
-    console.log(email);
     const query = {email_address: email};
     const cursor = await userCollection.findOne(query);
-    console.log(cursor);
     res.send(cursor);
 })
 
