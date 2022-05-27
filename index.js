@@ -81,6 +81,14 @@ async function run(){
 })
 
 
+app.get('/order/:id', async (req, res) =>{
+  const id = req.params.id;
+  const query = {_id: ObjectId(id)};
+  const order = await orderCollection.findOne(query);
+  res.send(order);
+})
+
+
   app.get('/userDetails/:email', async (req, res) => {
     const email = req.params.email;
     const query = {email_address: email};
