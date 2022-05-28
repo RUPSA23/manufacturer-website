@@ -180,7 +180,8 @@ async function run() {
       res.send(order);
     });
 
-    app.patch('order/:id', verifyJWT, async (req, res) => {
+    app.patch('/order/:id', verifyJWT, async (req, res) => {
+      console.log("PATCH REQEST");
       const id = req.params.id;
       const payment = req.body;
       const filter = {_id: ObjectId(id)};
