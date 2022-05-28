@@ -43,6 +43,7 @@ async function run() {
     const userCollection = client.db("manufactureFactory").collection("user");
     const orderCollection = client.db("manufactureFactory").collection("order");
     const registeredUserCollection = client.db("manufactureFactory").collection("regisUsers");
+    const paymentCollection = client.db("manufactureFactory").collection("payment");
 
     app.post("/create-payment-intent", async (req, res) => {
       const order = await req.body;
@@ -177,6 +178,21 @@ async function run() {
       const query = { _id: ObjectId(id) };
       const order = await orderCollection.findOne(query);
       res.send(order);
+    });
+
+    app.patch('order/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = {_id: ObjectId(id)};
+      const updatedDoc = {
+        $set: { 
+          isPaid: true,
+          transactionId: payment.transactionId
+        }
+      }
+      const updatedOrder = await orderCollection.updateOne(filter, updatedDoc);
+      const result = await paymentCollection.insertOne(payment);
+      res.send(updatedOrder);
     });
 
     app.get("/userDetails/:email", async (req, res) => {
