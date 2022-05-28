@@ -56,6 +56,21 @@ async function run() {
       res.send({ clientSecret: paymentIntent.client_secret });
     });
 
+    app.get('/users', verifyJWT, async (req, res) => {
+      const users = await registeredUserCollection.find().toArray();
+      res.send(users);
+    })
+
+    app.put('/user/admin/:email', async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const updatedDoc = {
+        $set: {role: 'admin'},
+      };
+      const result = await registeredUserCollection.updateOne(filter, updatedDoc);
+      res.send({result});
+    })
+
     app.put('/user/:email', async (req, res) => {
       const email = req.params.email;
       const user = req.body;
