@@ -61,14 +61,29 @@ async function run() {
       res.send(users);
     })
 
-    app.put('/user/admin/:email', async (req, res) => {
+    app.get('/admin/:email', async (req, res) => {
+        const email = req.params.email;
+        const user = await registeredUserCollection.findOne({email: email});
+        const isAdmin = user.role === 'admin';
+        res.send({admin: isAdmin});
+    })
+
+    app.put('/user/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
-      const filter = { email: email };
-      const updatedDoc = {
-        $set: {role: 'admin'},
-      };
-      const result = await registeredUserCollection.updateOne(filter, updatedDoc);
-      res.send({result});
+      const requester = req.decoded.email;
+      const requesterAccount = await registeredUserCollection.findOne({email: requester});
+      if(requesterAccount.role === 'admin'){
+        const filter = { email: email };
+        const updatedDoc = {
+          $set: {role: 'admin'},
+        };
+        const result = await registeredUserCollection.updateOne(filter, updatedDoc);
+        res.send({result});
+      }
+      else{
+        res.status(403).send({message: 'forbidden'});
+      }
+      
     })
 
     app.put('/user/:email', async (req, res) => {
@@ -89,6 +104,12 @@ async function run() {
       const cursor = toolsCollection.find(query);
       const alltools = await cursor.toArray();
       res.send(alltools);
+    });
+
+    app.post("/addtools", async (req, res) => {
+      const review = req.body;
+      const result = await toolsCollection.insertOne(review);
+      res.send(result);
     });
 
     app.get("/tool/:id", async (req, res) => {
