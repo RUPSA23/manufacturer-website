@@ -108,8 +108,8 @@ async function run() {
     });
 
     app.post("/addtools", async (req, res) => {
-      const review = req.body;
-      const result = await toolsCollection.insertOne(review);
+      const tool = req.body;
+      const result = await toolsCollection.insertOne(tool);
       res.send(result);
     });
 
@@ -119,6 +119,16 @@ async function run() {
       const tool = await toolsCollection.findOne(query);
       res.send(tool);
     });
+
+    app.get("/tool/:name", async (req, res) => {
+      const name = req.params.name;
+      const query = {"name" : {$regex : name}};
+      const tool = await toolsCollection.findOne(query);
+      console.log("SuggestedItems: "+tool);
+      res.send(tool);
+    });
+
+   
 
     app.post("/addReview", async (req, res) => {
       const review = req.body;
@@ -158,9 +168,9 @@ async function run() {
       res.send(allReviews);
     });
 
-    app.get("/myorders/:email",  verifyJWT, async (req, res) => {
+    app.get("/myOrders/:email",  verifyJWT, async (req, res) => {
       const email = req.params.email;
-    const decodedEmail = req.decoded.email;
+      const decodedEmail = req.decoded.email;
     if(email === decodedEmail){
       const query = { userEmail: email };
       const cursor = orderCollection.find(query);
@@ -202,6 +212,15 @@ async function run() {
       const cursor = await userCollection.findOne(query);
       res.send(cursor);
     });
+
+    app.delete("/delete/:id", async (req, res)=> {
+      // console.log("Hi");
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+      const result = await toolsCollection.deleteOne(query);
+      // console.log(result);
+      res.send(result);
+  });
 
     app.delete("/order/:id", async (req, res) => {
       const id = req.params.id;
